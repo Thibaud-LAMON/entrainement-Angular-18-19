@@ -78,3 +78,29 @@ Pour générer un composant : `ng generate component [nom-du-composant]` ou `ng 
 pour le générer sans tests : `ng g c [nom-du-composant] --skip-tests`
 
 Pour afficher un composant dans un autre : on l'importe puis dans le code html, on y met la balise du composant importé
+
+## Cours 4 - Les inputs & signal inputs
+
+Pour afficher plusieurs cartes sans avoir besoin de créer un composant par carte on peut utiliser des inputs, des valeurs d'entrée passée au composant et utilisable comme propriété.
+
+2 méthodes :
+
+- **Le décorateur @Input** :
+
+  Dans le fichier .component.ts ajouter @Input() devant un attribut.
+  Puis dans le fichier .component.html aller dans la balise du composant et ajouter `attribut="valeur"` (NB: si la valeur est un number écrire `[attribut]="valeur"`).
+
+  On peut aussi passer des objets plus complexe en créant un modèle contenant les données liés aux monstre :
+
+  1. On commence pour cela par créer un dossier "models" dans le dossier "app" où on va créer une classe contenant les attributs avec une valeur par défaut.
+  2. Remplacer les attributs du .component.ts par `@Input() [attribut]: [Modèle] = new [Modèle]()`.
+  3. Dans le .component.html, remplacer les attributs par `{{[attribut].[attribut]}}`.
+  4. app.component.html doit aussi être modifié, pour cela on commence par modifier le app.component.ts en déclarant une propriété du type du modèle créé `prop1: [Modèle] = new [Modèle]()` puis ajouter un constructeur avec les attributs et valeurs nécessaires.
+  5. Dans app.component.html appeler le composant `<selector [attribut]="prop1"/>`.
+
+  Un input peut être configuré pour être obligatoire : `@Input({ required : true})` ; Ou avoir un alias : `@Input({ alias : 'mon-alias'})` ; On peut aussi leur appliquer une transformation, recevoir une valeur en Input et la modifier avant de la stocker : `transform: (attributs) => {fonction}`
+
+- **Les signal inputs**
+  signal : sorte de warper se plaçant autour d'une valeur et qui notifie une partie du code qu'elle a changée.
+  Plus besoin d'@Input dans le .component.ts, on le remplace par un attribut de type InputSignal : `attribut: InputSignal<type> = input(new Model())`. Puis dans le .component.html, remplacer les attributs par `{{[attribut]().[attribut]}}`.
+  On peut aussi le customiser en le rendant obligatoire : `attribut: InputSignal<type> = input.required()` ; en lui donnant un alias : `attribut: InputSignal<type> = input(new Model(), {alias : 'mon-alias'})` ; ou en le transformant `attribut: InputSignal<type> = input(new Model(), {transform: (attributs) => {fonction}})`

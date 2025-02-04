@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { PlayingCarsComponent } from './components/playing-cars/playing-cars.component';
+import { PlayingCardComponent } from './components/playing-card/playing-card.component';
+import { Monster } from './models/monster.model';
 
 @Component({
   selector: 'app-root',
@@ -7,6 +8,15 @@ import { PlayingCarsComponent } from './components/playing-cars/playing-cars.com
   styles: ``,
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  imports: [PlayingCarsComponent],
+  imports: [PlayingCardComponent],
 })
-export class AppComponent {}
+export class AppComponent {
+  monster1: Monster = new Monster();
+
+  constructor() {
+    this.monster1 = new Monster();
+    this.monster1.name = 'Pik';
+    this.monster1.hp = 40;
+    this.monster1.figureCaption = '002 Pik';
+  }
+}
