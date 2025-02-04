@@ -57,3 +57,24 @@ Dans src :
 - main.ts : point d'entrée de l'app, lance le module principal de l'app
 - index.html : c'est ici que s'affiche l'app
   ../app : comprend les ressources du composant principal de l'app (rendu en .html, style en .css, comportement en .ts, test unitaire en .spec.ts), app.config.ts configure les dépendances externes, app.routes.ts défini les routes qu'on mappe sur les composants
+
+## Cours 3 - Les composants
+
+Composant : brique d'appli en charge d'un aspect spécifique de l'app, défini le contenu, style & comportement de la brique.
+
+Un composant commence avec 4 fichier mais ne les a pas tous obligatoirement. On peut supprimer .spec.ts sans substitut, .html si on mets un paramètre template dans le décorateur @Component du .ts
+
+Composant Angular = classe TS avec @Component + paramètres :
+
+- selector : nom de la balise utilisable dans le HTML
+- standalone : autrefois un composant vivait dans un module gérant les imports des composants et leurs dépendances, depuis Angular 17 plus besoin de module : les composants peuvent être standalones et depuis Angular 19 ils le sont par défaut.
+- template : comprend le HTML du composant #loin d'être pratique car trop peu lisible
+- styles : comprend le CSS du composant #loin d'être pratique car trop peu lisible
+- templateUrl : permet d'importer un fichier .html pour le composant
+- styleUrl : permet d'importer un fichier .css pour le composant
+- imports : permet d'importer d'autres composants
+
+Pour générer un composant : `ng generate component [nom-du-composant]` ou `ng g c [nom-du-composant]`
+pour le générer sans tests : `ng g c [nom-du-composant] --skip-tests`
+
+Pour afficher un composant dans un autre : on l'importe puis dans le code html, on y met la balise du composant importé
