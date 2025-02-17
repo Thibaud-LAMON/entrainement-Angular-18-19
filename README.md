@@ -104,3 +104,112 @@ Pour afficher plusieurs cartes sans avoir besoin de créer un composant par cart
   signal : sorte de warper se plaçant autour d'une valeur et qui notifie une partie du code qu'elle a changée.
   Plus besoin d'@Input dans le .component.ts, on le remplace par un attribut de type InputSignal : `attribut: InputSignal<type> = input(new Model())`. Puis dans le .component.html, remplacer les attributs par `{{[attribut]().[attribut]}}`.
   On peut aussi le customiser en le rendant obligatoire : `attribut: InputSignal<type> = input.required()` ; en lui donnant un alias : `attribut: InputSignal<type> = input(new Model(), {alias : 'mon-alias'})` ; ou en le transformant `attribut: InputSignal<type> = input(new Model(), {transform: (attributs) => {fonction}})`
+
+## Cours 5 - Outputs, signal outputs et models
+
+Pour ajouter un effet à un bouton au moment du clique, on utilise un évènement (click) `<button (click)="fonction()>"` la fonction est codée dans le .component.ts ;
+
+Pour créer un évènement utilisé par AppComponent pour être notifié à chaque clique :
+
+1. Créer dans le .component.ts un EventEmitter qui permet d'émettre un évènement et y ajouter le décorateur @Output : `@Output() maPropriété = new EventEmitter();`
+2. Remplacer le code de la fonction de l'évènement par `this.maPropriété.emit() ;`
+3. Dans app.component.html : `<selector (maPropriété)=fonction()>`
+
+Pour renvoyer la valeur entrée dans la barre de recherche vers AppComponent :
+
+1. Importer FromsModule dans AppComponent
+2. Dans .component.ts : `@Input() nom = 'valeur initiale'`
+3. Dans .component.html : `<input [ngModel]="nom" />`
+
+Pour réagir aux modifications :
+
+1. `(ngModelChange)="nomUpdate($event)` dans le même \<input>. $event est la variable dans laquelle est stockée la valeur émise par un event.
+2. Dans le .component.ts :
+
+```
+@Output() nomOutput = new EventEmitter<type>();
+
+nomUpdate(value: type) {
+	this.nomOutput.emit(value);
+}
+```
+
+3. Dans appComponent : créer une variable = ""
+4. Dans le .component.html :
+
+```
+<selector (maPropriété)=fonction() [variable]="search" (nomOutput)="variable = $event">
+Search: {{variable}}
+```
+
+\[variable\]="search" sert à initialiser la variable en input pour initialiser le composant avec le contenu de la variable
+
+**IMPORTANT** : pour un output "name" et un input "nameChange", si on souhaite que l'output assigne la valeur de celui-ci à la variable de l'input, on peut utiliser une notation raccourcie :
+
+```
+[name]="name"
+(nameChange)="name=$event"
+```
+
+devient :
+
+```
+[(name)]="name"
+```
+
+Cette méthode s'appelle du "Two-Way Binding (TWB)". Par contraste, les inputs et outputs sont des "One-Way Binding (OWB)".
+
+@Output peut prendre un alias pour donner à l'output un nom différent de la variable du EventEmitter.
+
+dans .component.ts :
+
+```
+@Output() name = new EventEmitter<type>();
+@Output('alias') nameClicked = new EventEmitter();
+```
+
+dans app.component.html :
+
+```
+<app-search-bar (alias)="increaseCount()" [(search)]="search" /> // alias remplace nameClicked
+```
+
+Depuis Angular 17.3 plus besoin de @Output, on peut utiliser les signal outputs :
+
+dans .component.ts :
+
+```
+@Output('alias') nameClicked = new EventEmitter();
+//devient
+nameClicked = output({alias : "alias"});
+```
+
+dans app.component.html :
+
+```
+<app-search-bar (alias)="increaseCount()" [(search)]="search" /> // alias remplace nameClicked
+```
+
+On peut faire encore plus simple avec la fonction model() :
+
+dans .component.ts :
+
+```
+nameInput = input<string>('initialValue');
+//devient
+nameInput = model<string>('initialValue');
+```
+
+on efface le nameChange car model() créer un input et un outputChange, et il émet un input pour chaque changement de valeur.
+
+```
+nomUpdate(value: type) {
+	this.nameInput.emit(value);
+}
+```
+
+enfin on effectue le TWB sur ngModel dans .component.html :
+
+`<input [(ngModel)]="search" />`
+
+et on efface la fonction d'update

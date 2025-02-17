@@ -1,0 +1,34 @@
+#search-bar {
+  display: flex; /* s'aligne sur l'axe horizontal au centre */
+  background-color: white;
+  border-radius: 40px;
+  margin: 50px auto;
+  width: 400px;
+  box-shadow: 3px 3px 10px -3px grey;
+  overflow: hidden; /* cache les éléments qui dépassent */
+}
+
+button {
+  background-color: rgb(205, 205, 255);
+  border: none; /* pas de bordure */
+  padding: 5px;
+  margin: 5px;
+  border-radius: 40px;
+  cursor: pointer; /* curseur en pointeur */
+  width: 30px;
+}
+
+input {
+  all: unset; /* supprime les styles par défaut */
+  flex-grow: 1; /* prend toute la place restante */
+  padding: 10px 20px;
+}
+
+button img {
+  max-width: 18px;
+  max-height: 18px;
+}
+
+button:hover {
+  background-color: rgb(180, 180, 255);
+}
