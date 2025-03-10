@@ -308,4 +308,67 @@ variable2 = input(valeur)
 Dans .component.html :
 \<component [input]="variable1()">
 
-À l'avenir Angular se débarassera de Zone.js pour que tout passe par les
+À l'avenir Angular se débarassera de Zone.js pour que tout passe par les Signals.
+
+## Cours 7 - Les boucles et les conditions
+
+Pour déclarer une boucle, se rendre dans le .component.html :
+
+```html
+<component *ngFor="let var of varlist" [var]="var" />
+```
+
+Pour déclarer une condition :
+
+```html
+<div *ngIf="condition" />
+```
+
+Pour une condition multiple :
+
+```html
+<div *ngIf="condition; else nom" />
+<ng-template #nom>
+  <div />
+</ng-template>
+```
+
+ou
+
+```html
+<div *ngIf="condition; then nom1 else nom2" />
+<ng-template #nom1>
+  <div />
+</ng-template>
+<ng-template #nom2>
+  <div />
+</ng-template>
+```
+
+nouvelle syntaxe :
+
+```html
+@if{
+<div />
+} @else {
+<div />
+} @for(var of signal(); track var){
+<component [var]="var" />
+}@empty{
+<!-- si la liste est vide -->
+<div />
+}
+```
+
+"track" sert à déterminer quels objets sonts ajoutés, modifiés, ou supprimé du DOM pour faire moins d'opérations lors d'un changement. Tant que la référence de l'objet ne change pas on estime que c'est le même objet qui est affiché.
+
+@for donne aussi quelques variables additionnelles :
+
+- $index : contient l'index de l'itération en cours
+- $count : contient le nombre total d'élément de la liste
+- $first : n'est true que pour le premier élément
+- $last : n'est true que pour le dernier élément
+- $even : n'est true qu'aux éléments pairs
+- $odd : n'est true qu'aux éléments impairs
+
+## Cours 8 - Les services

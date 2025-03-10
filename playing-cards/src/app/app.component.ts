@@ -1,33 +1,27 @@
-import { Component, computed, effect, signal } from '@angular/core';
+import { Component, computed, effect, model, signal } from '@angular/core';
 import { PlayingCardComponent } from './components/playing-card/playing-card.component';
 import { Monster } from './models/monster.model';
 import { SearchBarComponent } from './components/search-bar/search-bar.component';
 import { MonsterType } from './utils/monster.utils';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
-  imports: [PlayingCardComponent, SearchBarComponent],
+  imports: [CommonModule, PlayingCardComponent, SearchBarComponent],
 })
 export class AppComponent {
   monsters!: Monster[];
-  count: number = 0;
-  search = '';
+  search = model('');
 
-  selectedMonsterIndex = signal(1);
-  selectedMonster = computed(() => {
-    return this.monsters[this.selectedMonsterIndex()];
+  filteredMonsters = computed(() => {
+    return this.monsters.filter((monster) =>
+      monster.name.includes(this.search())
+    );
   });
 
-  increaseCount() {
-    this.count++;
-  }
-
   constructor() {
-    effect(() => {
-      console.log('Selected monster:', this.selectedMonster());
-    });
     this.monsters = [];
 
     const monster1 = new Monster();
@@ -43,11 +37,21 @@ export class AppComponent {
     monster2.hp = 60;
     monster2.figureCaption = '003 Car';
     this.monsters.push(monster2);
-  }
 
-  toggleMonster() {
-    this.selectedMonsterIndex.set(
-      (this.selectedMonsterIndex() + 1) % this.monsters.length
-    );
+    const monster3 = new Monster();
+    monster3.name = 'Bulb';
+    monster3.image = 'img/placeholder_3.jpg';
+    monster3.type = MonsterType.PLANT;
+    monster3.hp = 60;
+    monster3.figureCaption = '004 Bulb';
+    this.monsters.push(monster3);
+
+    const monster4 = new Monster();
+    monster4.name = 'Sala';
+    monster4.image = 'img/placeholder_4.jpg';
+    monster4.type = MonsterType.FIRE;
+    monster4.hp = 60;
+    monster4.figureCaption = '005 Sala';
+    this.monsters.push(monster4);
   }
 }

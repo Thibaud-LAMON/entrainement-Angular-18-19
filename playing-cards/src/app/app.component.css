@@ -10,3 +10,10 @@ h1 {
   align-items: center;
   justify-content: center;
 }
+
+.center {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
