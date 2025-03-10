@@ -213,3 +213,99 @@ enfin on effectue le TWB sur ngModel dans .component.html :
 `<input [(ngModel)]="search" />`
 
 et on efface la fonction d'update
+
+## Cours 6 - Détection de changements
+
+On commence par revenir sur un input ordinaire dans le .component.ts : `@Input() name: Model = new Model();`
+
+Dans le app.component:
+
+```
+//ts
+names!: Model[];
+selectedIndex = 0;
+//dans le constructeur faire this.names = []; puis 2 ou + objets name
+toggleMethod() {
+    this.selectedIndex =
+      (this.selectedIndex + 1) % this.names.length;
+  }
+
+//html
+<button (click)="toggleMethod()">Button Text</button>
+<div id="">
+  <component [name]="names[selectedIndex]" />
+</div>
+```
+
+Cela permet de changer le nom en fonction de l'index.
+
+Mais on souhaite aussi changer l'image, la couleur d'arrière plan et les icônes. Pour cela on vas créer un fichier d'utilitaires :
+
+- Dans ./app, créer un dossier ./utils
+- Créer un fichier .utils.ts
+- Dans le fichier créer un enum, une interface et un dictionnaire qui va mapper l'enum vers l'interface
+
+```
+export enum Param {
+  NAME1 = 'name1',
+  ...
+}
+export interface IProperties {
+  property: datatype,
+  ...
+}
+export const paramProperties{ [key: datatype]: IProperties } = {
+  [Param.NAME1]: {
+    property: value,
+    ...
+  },
+}
+```
+
+- On ajoute les paramètres requis dans le model, dans le app.component.ts, le .component.ts et le .component.html
+- Dans le .component.ts, il faut implémenter OnChanges
+
+Détection de changement :
+Angular utilise Zone.js pour détecter les changements, pour chaque intéraction de l'utilisateur ou à la reception d'un appel asynchrone (résultat d'appel API), Zone.js va informer Angular.
+Ce dernier considère que tout ce qui passe par Zone.js peut impacter un composant.
+Pour vérifier cela, Angular commence par inspecter <\root> puis les autres compos.
+En cliquant sur un bouton Angular vérifie tout de même les composants liés et applique le changement.
+Utile car on peut modifier les valeurs n'importe où dans le code en étant sûr des màj de compo, mais les perfs en pattissent car vérifications inutiles d'autres compos.
+On peut utiliser une autre stratégie : OnPush, qui est à préciser sur chaque composant souhaité.
+la stratégie marche avec les changements suivant :
+
+- valeur d'input change
+- event (clique par exemple)
+- nouvelle valeur de pipe async
+- marquage manuel pour vérif
+
+Mais pas avec :
+
+- setInterval
+- setTimeout
+- promise
+- obsrvable
+
+Depuis Angular 16 : introduction des Signals, ils utilisent des primitives :
+
+- signal() : lecture/écriture + notifie Angular quand la valeur change
+- computed(() => {}) : lecture, calcul sa valeur grâce aux valeurs d'un ou plusieurs signaux + notifie Angular quand la valeur d'un des signaux est modifiée
+- effect (() => {}) : défini une fonction arbitraire qui sera exécuté quand un signal utilisé par celle-ci est màj
+
+Implémenter des Signals :
+Dans app.component.ts :
+variable1 = signal(valeur)
+variable1.set()
+variable1()
+
+Dans app.component.html :
+\<component [input]="variable1()">
+
+Avec des input:
+Dans .component.ts :
+variable2 = input(valeur)
+
+Dans .component.html :
+\<component [input]="variable1()">
+
+À l'avenir Angular se débarassera de Zone.js pour que tout passe par les

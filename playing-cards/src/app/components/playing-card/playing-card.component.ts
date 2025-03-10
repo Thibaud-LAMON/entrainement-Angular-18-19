@@ -1,5 +1,14 @@
-import { Component, input, Input, InputSignal } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  Input,
+  InputSignal,
+  OnChanges,
+  SimpleChanges,
+} from '@angular/core';
 import { Monster } from '../../models/monster.model';
+import { MonsterTypeProperties } from '../../utils/monster.utils';
 
 @Component({
   selector: 'app-playing-card',
@@ -8,8 +17,37 @@ import { Monster } from '../../models/monster.model';
   styleUrl: './playing-card.component.css',
 })
 export class PlayingCardComponent {
-  monster: InputSignal<Monster> = input(new Monster());
+  monster = input(new Monster());
+  monsterTypeIcon = computed(() => {
+    return MonsterTypeProperties[this.monster().type].imageUrl;
+  });
+  backgroundColor = computed(() => {
+    return MonsterTypeProperties[this.monster().type].color;
+  });
 
+  /* ngOnChanges n'est ici plus utile grâce à l'utilisation de signals
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['monster']) {
+      if (
+        changes['monster'].previousValue?.type !=
+        changes['monster'].currentValue.type
+      ) {
+        this.monsterTypeIcon() =
+          MonsterTypeProperties[this.monster().type].imageUrl;
+        this.backgroundColor() = MonsterTypeProperties[this.monster().type].color;
+      }
+    }
+  }
+  */
+  /*
+  monster: InputSignal<Monster> = input(new Monster(), {
+    alias: 'my-monster',
+    transform: (value: Monster) => {
+      value.hp = value.hp / 2;
+      return value;
+    },
+  });
+  */
   /* plus besoin grâce aux signal input
 
   @Input({
@@ -20,7 +58,7 @@ export class PlayingCardComponent {
     },
   })
   monster: Monster = new Monster();
-*/
+  */
   /* plus besoin de ces attributs, ils sont tous dans le modèle Monster
 
   @Input() name: string = 'My Monster';
