@@ -372,3 +372,181 @@ nouvelle syntaxe :
 - $odd : n'est true qu'aux éléments impairs
 
 ## Cours 8 - Les services
+
+Service : classe mettant à disposition des données/méthodes réutilisables par plusieurs composants. Il sépare les données et la logique de l'affichage.
+
+Il s'agit d'un singleton (une seule instance du service dans toute l'appli) injectable (dans tous les composants où c'est nécessaire).
+
+Créer une liste d'objets injectables dans app.component.ts n'est pas optimal car cette liste pourrait être nécessaire ailleurs, il faut la séparer de la liste de la classe AppComponent.
+
+1. On commence par ajouter au model un ID unique, un number qu'on initie à -1
+2. `ng g s [nom-du-service]`
+3. Dans la classe service :
+
+```
+method(){
+  logique méthode
+}
+```
+
+4. Dans le .component.ts :
+
+```
+constructor(private service: NomService) {
+  this.service.method()
+}
+```
+
+Problème : si on veut hériter de cette classe, il faut redéfinir le constructeur avec tous les service définis dans la classe parente.
+
+Depuis Angular 14 : dans le .component.ts :
+
+```
+attributService = inject(NomService)
+constructor() {
+}
+```
+
+pour éviter un constructeur à ralonge lors de l'héritage.
+
+Pour les méthodes :
+
+1. dans le model, créer une méthode copy() pour éviter toute modification sur l'objet original
+
+```
+copy(): Model {
+  return Object.assign(new Model(), this);
+}
+```
+
+2. dans le service :
+
+```
+export class ModelService {
+  arrayVar: Model[] = [];
+  currentIndex = 1;
+
+  constructor() {
+    this.arrayVar = [];
+
+    const instance1 = new Model();
+    instance1.id = this.currentIndex++;
+    instance1.attribute1 = value;
+    instance1.attribute2 = value;
+    this.arrayVar.push(instance1);
+
+    const instance2 = new Model();
+    instance2.id = this.currentIndex++;
+    instance2.attribute1 = value;
+    instance2.attribute2 = value;
+    this.arrayVar.push(instance2);
+
+    ...
+  }
+
+  getAll(): Model[] {
+    return this.arrayVar.map((att) => att.copy());
+  }
+
+  get(id: number): Model | undefined {
+    const var = this.arrayVar.find((att) => att.id === id);
+    return var ? var.copy() : undefined;
+  }
+
+  add(model: Model): Model {
+    const objCopy = model.copy();
+    objCopy.id = this.currentIndex;
+    this.arrayVar.push(objCopy.copy());
+    this.currentIndex++;
+    this.save();
+    return objCopy;
+  }
+
+  update(model: Model): Model | undefined {
+    const objCopy = model.copy();
+    const objIndex = this.arrayVar.findIndex(
+      (originalModel) => originalModel.id === model.id
+    );
+    if (objIndex != 1) {
+      this.arrayVar[objIndex] = objCopy.copy();
+      this.save();
+    }
+    return objCopy;
+  }
+
+  delete(id: number) {
+    const objIndex = this.arrayVar.findIndex((originalModel) => originalModel.id === id);
+    if (objIndex != 1) {
+      this.arrayVar.splice(objIndex, 1);
+      this.save();
+    }
+  }
+}
+```
+
+3. Pour que le service stocke les infos dans le stockage local :
+
+```
+constructor() {
+  this.load();
+}
+
+//sauvegarde les informations dans le stockage local
+private save() {
+  localStorage.setItem('arrayVar', JSON.stringify(this.arrayVar));
+}
+
+//lit les informations depuis le stockage local
+private load() {
+  const arrayVarData = localStorage.getItem('arrayVar');
+  if (arrayVarData) {
+    this.arrayVar = JSON.parse(arrayVarData).map((arrayVarJSON: any) => Object.assign(new Model(), arrayVarJSON)
+    );
+    this.currentIndex = Math.max(...this.arrayVar.map((att) => att.id)); // on récupère l'index actuel pour les prochains éléments qu'on souhaite ajouter à la liste
+  } else {
+    this.init();
+    this.save();
+  }
+}
+
+//initialise avec des monstres par défaut
+private init() {
+  this.arrayVar = [];
+
+  const instance1 = new Model();
+  instance1.attribute1 = value;
+  instance1.attribute2 = value;
+  this.arrayVar.push(instance1);
+
+  const instance2 = new Model();
+  instance2.attribute1 = value;
+  instance2.attribute2 = value;
+  this.arrayVar.push(instance2);
+  ...
+}
+
+```
+
+4. Le filtre de AppComponent ne marche désormait plus, il faut passer la liste d'objets en signal :
+
+```
+var = signal<Model[]>([]);
+
+filteredModel = computed(() => {
+  return this.var().filter((att) =>
+    att.modelAtt.includes(this.search())
+  );
+});
+
+constructor() {
+  this.var.set(this.service.serviceMethod());
+}
+
+method() {
+  const var = new Monster();
+  this.service.add(var);
+  this.var.set(this.service.serviceMethod());
+}
+```
+
+rappel : on appelle la var avec var()
