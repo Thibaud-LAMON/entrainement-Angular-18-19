@@ -550,3 +550,48 @@ method() {
 ```
 
 rappel : on appelle la var avec var()
+
+## Cours 9 - Les routes
+
+Pour paramétrer les routes, se rendre dans app.routes.ts et définir les routes dans le tableau "routes"
+
+```
+export const routes: Routes = [
+  { path: 'nom-de-route', component: Composant },
+  { path: 'nom-de-route', component: Composant },
+  ...
+];
+```
+
+Cependant afin d'afficher le contenu, il faut indiquer dans app.component.html où est-ce qu'on affiche les routes avec `<router-outlet></router-outlet>`, qui doit aussi être importer dans le app.component.ts `imports: [RouterOutlet],`.
+
+Pour effectuer une redirection, aller dans app.routes.ts
+
+```
+export const routes: Routes = [
+  { path: 'nom-de-route', component: Composant },
+  { path: '', redirectTo: '/nom-de-route', pathMatch: 'full' }, //angular prend l'adresse complète et la match avec le path
+];
+```
+
+En renseignant un identifiant après la route, on peut accéder à un objet en particulier. On peut refactorer avec un seul path et un tableau de sous-routes "children".
+
+```
+export const routes: Routes = [
+  {
+    path: 'nom-de-route',
+    children: [
+      {
+        path: '',
+        component: Composant,
+      },
+      {
+        path: ':id',
+        component: Composant,
+      },
+    ],
+  },
+];
+```
+
+## Cours 10 - Les formulaires réactifs
