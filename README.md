@@ -294,19 +294,22 @@ Depuis Angular 16 : introduction des Signals, ils utilisent des primitives :
 
 Implémenter des Signals :
 Dans app.component.ts :
+
+```
 variable1 = signal(valeur)
 variable1.set()
 variable1()
+```
 
 Dans app.component.html :
-\<component [input]="variable1()">
+`\<component [input]="variable1()">`
 
 Avec des input:
 Dans .component.ts :
-variable2 = input(valeur)
+`variable2 = input(valeur)`
 
 Dans .component.html :
-\<component [input]="variable1()">
+`\<component [input]="variable1()">`
 
 À l'avenir Angular se débarassera de Zone.js pour que tout passe par les Signals.
 
@@ -595,3 +598,266 @@ export const routes: Routes = [
 ```
 
 ## Cours 10 - Les formulaires réactifs
+
+différents types de formulaires :
+
+- Template-Driven Form (TDF) :
+  utilise les fonctionnalités précedement vues lors des précedents cours pour récupérer les valeurs des différents champs (ex : 2-way binding avec [(ngModel)] pour synchroniser l'état d'un formulaire avec les variables du fichier TS)
+
+- Reactive Form (RF) :
+  défini le comportement du formulaire de manière déclarative dans le fichier TS, on indique pour chaque champ : la valeur par défaut, les règles de validations et la souscription aux changements ces champs afin d'y réagir en temps réel
+
+Pour créer un RF :
+
+```
+<form (submit)="submit($event)">
+  <div>
+    <label for="input_id">Name</label>
+    <input type="type" id="input_id" name="nom-du-champ" [formControl]="nom-du-champ">
+  </div>
+  <button type="submit">Save</button>
+</form>
+```
+
+Pour lier l'input au fichier TS, on utilise la classe formControl qui permet d'accéder à la valeur de l'input et déclarer des règles de validation dans le TS.
+
+- dans le .component.ts :
+
+```
+nom-du-champ = new FormControl('');
+
+submit(event: Event) {
+  event.preventDefault();
+  console.log(this.nom-du-champ.value);
+}
+```
+
+- dans le .component.html :
+  `<input type="type" id="input_id" name="nom-du-champ" [formControl]="nom-du-champ">`
+
+Pour modifier la valeur de l'input via le TS, on peut utiliser setValue.
+
+```
+setChanged() {
+  this.nom-du-champ.setValue('changed');
+}
+```
+
+Pour indiquer que l'input est obligatoire :
+
+- dans le .component.ts :
+  `nom-du-champ = new FormControl('', [Validators.required]);`
+
+- dans le .component.html :
+  `<button type="submit" [disabled]="nom-du-champ.invalid">Save</button>`
+
+Dans le .component.css, on peut utiliser des classes css héritées de FormControl pour indiquer l'état
+
+```
+.ng-dirty.ng-invalid, /*si le formulaire est modifié et invalide*/
+.ng-touched.ng-invalid /*si le formulaire est cliqué et invalide*/ {
+  border-color: red;
+  border-width: 1px;
+}
+```
+
+exemple pour un champ de type 'number' :
+
+- dans le .component.ts :
+
+```
+nom-du-champ-2 = new FormControl(0, [
+  Validators.required,
+  Validators.min(1),
+  Validators.max(200),
+]);
+```
+
+- dans le .component.html :
+
+```
+<label for="input_id">HP</label>
+<input type="number" id="input_id" name="nom-du-champ-2" [formControl]="nom-du-champ-2">
+```
+
+L'idéal reste néanmoins de vérifier l'état du formulaire entier plutôt que champ par champ, on peut faire ça avec FromGroup.
+
+- dans le .component.html :
+
+```
+<form [formGroup]="formGroup" (submit)="submit($event)">
+  <div class="form-field">
+    <label for="text-input">text</label>
+    <input id="text-input" name="text-input" type="text" formControlName="text-input">
+    @if (isFieldValid('text-input')) {
+    <div class="error">This field is required.</div>
+    }
+  </div>
+  <div class="form-field">
+    <label for="image">Image</label>
+    <input id="image" name="image" type="file" (change)="onFileChange($event)">
+    @if (isFieldValid('image')) {
+    <div class="error">This field is required.</div>
+    }
+  </div>
+  <div class="form-field">
+    <label for="enum">Type</label>
+    <select id="enum" name="enum" formControlName="enum">
+      @for (enum of enumList; track enum) {
+      <option [value]="enum">{{enum}}</option>
+      }
+    </select>
+  </div>
+  <div class="form-field">
+    <label for="number">number</label>
+    <input id="number" name="number" type="number" formControlName="number">
+    @if (isFieldValid('number')) {
+    <div class="error">This field is not valid.</div>
+    }
+  </div>
+  <button type="submit" [disabled]="formGroup.invalid">Save</button>
+</form>
+```
+
+- dans le .component.ts :
+
+```
+enumList = Object.values(EnumName);
+
+formGroup = new FormGroup({
+  text-input: new FormControl('', [Validators.required]),
+  image: new FormControl('', [Validators.required]),
+  enum: new FormControl(EnumName.ELECTRIC, [Validators.required]),
+  number: new FormControl(0, [
+    Validators.required,
+    Validators.min(1),
+    Validators.max(200),
+  ]),
+});
+
+isFieldValid(name: string) {
+  const FormControl = this.formGroup.get(name);
+  return FormControl?.invalid && (FormControl?.dirty || FormControl?.touched);
+}
+
+onFileChange(event: any) {
+  const reader = new FileReader();
+  if (event.target.files && event.target.files.length) {
+    const [file] = event.target.files;
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      this.formGroup.patchValue({
+        image: reader.result as string,
+      });
+    };
+  }
+}
+```
+
+Le formulaire est prêt mais le fichier TS est lourd, on va utiliser FormBuilder qui contient la méthode formGroup() pour l'alléger.
+
+- dans le .component.ts :
+
+```
+private fb = inject(FormBuilder),
+
+formGroup = this.fb.group({
+  text-input: ['valeur-par-défaut', [Validators.required]],
+  image: ['', [Validators.required]],
+  enum: [EnumName.ELECTRIC, [Validators.required]],
+  number: [0, [
+    Validators.required,
+    Validators.min(1),
+    Validators.max(200),
+  ]],
+});
+```
+
+Si on veut afficher une prévisualisation :
+
+- dans le .component.html :
+
+```
+<div>
+  <component-visuel [input]="value"></component-visuel>
+</div>
+<div>
+  <form>
+    ...
+  </form>
+</div>
+
+//NB : l'input vient du code TS du composant importé, il prend pour valeur (value) un attribut du code TS qui sera déclaré dans le modèle ci-dessous.
+```
+
+- dans le .component.ts :
+
+```
+value: Model = Object.assign(new Model(), this.formGroup.value)
+private formValuesSubscription = Subscription | null = null
+
+ngOnInit(): void {
+  this.formValuesSubscription = this.formGroup.valueChanges.subscribe(
+    (data) => {
+      this.model = Object.assign(new Model(), data);
+    }
+  );
+  ...
+}
+
+ngOnDestroy(): void {
+  this.formValuesSubscription?.unsubscribe();
+}
+```
+
+Dans la mesure où on souhaite implémenter ce formulaire pour la modification d'un objet existant en stockage local :
+
+- dans le .component.ts :
+
+```
+private modelService = inject(ModelService)
+
+ngOnInit(): void {
+  ...
+  this.routeSubscription = this.route.params.subscribe((params) => {
+    if (params['id']) {
+      this.objectId = parseInt(params['id']);
+      const objectFound = this.modelService.get(this.objectId);
+      if (objectFound) {
+        this.object = objectFound;
+        this.formGroup.patchValue(objectFound);
+      }
+    }
+  });
+}
+
+ngOnDestroy(): void {
+  ...
+  this.routeSubscription?.unsubscribe();
+}
+```
+
+Pour les boutons "save" et "back" :
+
+- dans le .component.html :
+
+```
+<div>
+  <form>
+    ...
+    <div>
+      <button (click)="navigateBack()">Back</button>
+      <button type="submit" [disabled]="formGroup.invalid">Save</button>
+    </div>
+  </form>
+</div>
+```
+
+- dans le .component.html :
+
+```
+private router = inject(Router);
+navigateBack() {
+  this.router.navigate(['/home']);
+}
+```

@@ -1,12 +1,4 @@
-import {
-  Component,
-  computed,
-  input,
-  Input,
-  InputSignal,
-  OnChanges,
-  SimpleChanges,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { Monster } from '../../models/monster.model';
 import { MonsterTypeProperties } from '../../utils/monster.utils';
 
