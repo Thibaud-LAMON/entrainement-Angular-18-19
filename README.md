@@ -861,3 +861,16 @@ navigateBack() {
   this.router.navigate(['/home']);
 }
 ```
+
+## Cours 11 - Angular Material
+
+Angular Material : Library de composants graphiques basée sur les Material design de Google, les composants sont reponsifs et facile à custo.
+
+Pour installer : `ng add @angular/material`
+Les questions :
+
+- Voulez vous installer ? Yes
+- Le thème : thème de base ou custom ? Prenez celui que vous voulez selon vos besoins.
+- Voulez vous utiliser la typographie d'Angular Material ? yes/No
+
+[Site Angular Material](https://material.angular.io/)

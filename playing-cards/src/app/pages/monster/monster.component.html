@@ -3,82 +3,88 @@
 </div>
 <div class="main">
   <form [formGroup]="formGroup" (submit)="submit($event)">
-    <div class="form-field">
-      <label for="name">Name</label>
-      <input id="name" name="name" type="text" formControlName="name">
+    <mat-form-field>
+      <mat-label for="name">Name</mat-label>
+      <input matInput id="name" name="name" type="text" formControlName="name">
       @if (isFieldValid('name')) {
-      <div class="error">This field is required.</div>
+      <mat-error class="error">This field is required.</mat-error>
       }
-    </div>
+    </mat-form-field>
     <div class="form-field">
-      <label for="image">Image</label>
-      <input id="image" name="image" type="file" (change)="onFileChange($event)">
+      <!-- <label for="image">Image</label> -->
+      <button mat-raised-button type="button" (click)="imageInput.click()">
+        Upload Image: {{imageInput.files?.[0]?.name || '...'}}
+      </button>
+      <input hidden #imageInput id="image" name="image" type="file" (change)="onFileChange($event)">
       @if (isFieldValid('image')) {
       <div class="error">This field is required.</div>
       }
     </div>
-    <div class="form-field">
-      <label for="type">Type</label>
-      <select id="type" name="type" formControlName="type">
+    <mat-form-field>
+      <mat-label for="type">Type</mat-label>
+      <mat-select id="type" name="type" formControlName="type">
         @for (type of monsterTypes; track type) {
-        <option [value]="type">{{type}}</option>
+        <mat-option [value]="type">{{type}}</mat-option>
         }
-      </select>
-    </div>
-    <div class="form-field">
-      <label for="hp">HP</label>
-      <input id="hp" name="hp" type="number" formControlName="hp">
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label for="hp">HP</mat-label>
+      <input matInput id="hp" name="hp" type="number" formControlName="hp">
       @if (isFieldValid('hp')) {
       @if (formGroup.get('hp')?.hasError('required')) {
-      <div class="error">A valid number is required.</div>
+      <mat-error class="error">A valid number is required.</mat-error>
       }
       @if (formGroup.get('hp')?.hasError('min')) {
-      <div class="error">This field needs to be bigger than 0.</div>
+      <mat-error class="error">This field needs to be bigger than 0.</mat-error>
       }
       @if (formGroup.get('hp')?.hasError('max')) {
-      <div class="error">This field needs to be smaller or equal to 200.</div>
+      <mat-error class="error">This field needs to be smaller or equal to 200.</mat-error>
       }
       }
-    </div>
-    <div class="form-field">
-      <label for="figureCaption">Figure caption</label>
-      <input id="figureCaption" name="figureCaption" type="text" formControlName="figureCaption">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label for="figureCaption">Figure caption</mat-label>
+      <input matInput id="figureCaption" name="figureCaption" type="text" formControlName="figureCaption">
       @if (isFieldValid('figureCaption')) {
-      <div class="error">This field is required.</div>
+      <mat-error class="error">This field is required.</mat-error>
       }
-    </div>
-    <div class="form-field">
-      <label for="attackName">Attack name</label>
-      <input id="attackName" name="attackName" type="text" formControlName="attackName">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label for="attackName">Attack name</mat-label>
+      <input matInput id="attackName" name="attackName" type="text" formControlName="attackName">
       @if (isFieldValid('attackName')) {
-      <div class="error">This field is required.</div>
+      <mat-error class="error">This field is required.</mat-error>
       }
-    </div>
-    <div class="form-field">
-      <label for="attackStrength">Attack strength</label>
-      <input id="attackStrength" name="attackStrength" type="number" formControlName="attackStrength">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label for="attackStrength">Attack strength</mat-label>
+      <input matInput id="attackStrength" name="attackStrength" type="number" formControlName="attackStrength">
       @if (isFieldValid('attackStrength')) {
       @if (formGroup.get('attackStrength')?.hasError('required')) {
-      <div class="error">A valid number is required.</div>
+      <mat-error class="error">A valid number is required.</mat-error>
       }
       @if (formGroup.get('attackStrength')?.hasError('min')) {
-      <div class="error">This field needs to be bigger than 0.</div>
+      <mat-error class="error">This field needs to be bigger than 0.</mat-error>
       }
       @if (formGroup.get('attackStrength')?.hasError('max')) {
-      <div class="error">This field needs to be smaller or equal to 200.</div>
+      <mat-error class="error">This field needs to be smaller or equal to 200.</mat-error>
       }
       }
-    </div>
-    <div class="form-field">
-      <label for="attackDescription">Attack Description</label>
-      <input id="attackDescription" name="attackDescription" type="text" formControlName="attackDescription">
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label for="attackDescription">Attack Description</mat-label>
+      <input matInput id="attackDescription" name="attackDescription" type="text" formControlName="attackDescription">
       @if (isFieldValid('attackDescription')) {
-      <div class="error">This field is required.</div>
+      <mat-error class="error">This field is required.</mat-error>
       }
+    </mat-form-field>
+    <div class="button-container left">
+      <button mat-flat-button color="warn" type="button" (click)="deleteMonster()"> Delete </button>
     </div>
-    <div class="button-container">
-      <button (click)="navigateBack()">Back</button>
-      <button type="submit" [disabled]="formGroup.invalid">Save</button>
+    <div class="button-container right">
+      <button mat-button (click)="navigateBack()">Back</button>
+      <button mat-flat-button type="submit" [disabled]="formGroup.invalid">Save</button>
     </div>
   </form>
 </div>

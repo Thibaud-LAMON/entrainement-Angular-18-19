@@ -14,13 +14,21 @@
 }
 
 form {
-  max-width: 300px;
+  max-width: 500px;
+  margin: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+}
+
+mat-form-field {
+  width: 100%;
 }
 
 .form-field {
   display: flex;
   flex-direction: column;
-  margin: 10px 0;
+  margin-bottom: 20px;
 }
 
 label {
@@ -38,7 +46,18 @@ label {
   color: red;
 }
 
-.button-container {
-  display: flex;
-  gap: 10px;
+.button-container.left,
+.button-container.right {
+  display: inline-block;
+  width: 50%;
+}
+
+.button-container.right {
+  text-align: right;
+}
+
+.left {
+  button {
+    background-color: red;
+  }
 }
