@@ -874,3 +874,217 @@ Les questions :
 - Voulez vous utiliser la typographie d'Angular Material ? yes/No
 
 [Site Angular Material](https://material.angular.io/)
+
+## Cours 12 - Gestion d'authentification
+
+1. Créer un formulaire de login
+2. Créer un model User qui contiendra les coordonnées de ce dernier
+3. Utilisation de httpClient:
+
+On va ajouter un provider (provideHttpClient) à app.config qui va permettre de configurer httpClient avant de l'injecter dans l'app.
+
+dans app.config.ts :
+
+```
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    provideHttpClient(),
+  ],
+};
+```
+
+4. Créer un service login
+
+```
+private http = inject(HttpClient);
+private BASE_URL = 'http://localhost:8000';
+
+user = signal<User | null | undefined>(undefined); // Pour gérer les cas où l'utilisateur est : connecté || non connecté || on ne sait pas s'il est connecté
+
+constructor() {}
+
+login(credentials: Credentials): Observable<User | null | undefined> {
+  return this.http
+    .post<User>(this.BASE_URL + '/sessions/login/', { credentials }).pipe(
+      tap((result: any) => {
+        localStorage.setItem('token', result['token']);
+        const user = Object.assign(new User(), result['user']);
+        this.user.set(user);
+      }),
+      map((result: any) => {
+        return this.user();
+      })
+    );
+}
+
+//pipe() : méthode RxJS permettant d'enchainer des opérations suite au résultat d'un observable
+//tap() : prend le résultat d'un observable et d'éxecuter du code sans modifier son résultat
+//map() : prend le résultat d'un observable et le transforme en un autre résultat
+
+getUsers(): Observable<User | null | undefined> {
+  return this.http.get(this.BASE_URL + '/sessions/me/').pipe(
+    tap((result: any) => {
+      const user = Object.assign(new User(), result);
+      this.user.set(user);
+    }),
+    map((result: any) => {
+      return this.user();
+    })
+  );
+}
+
+logout(): Observable<null> {
+  return this.http.get(this.BASE_URL + '/sessions/logout/', {}).pipe(
+    tap(() => {
+      localStorage.removeItem('token');
+      this.user.set(null);
+    }),
+    map(() => {
+      return null;
+    })
+  );
+}
+
+```
+
+5. Dans le TS du formulaire de login, injecter les requêtes du service
+
+```
+export class LoginComponent implements OnDestroy {
+  private FormBuilder = inject(FormBuilder);
+  private LoginService = inject(LoginService);
+  private Router = inject(Router);
+
+  private loginSubscription: Subscription | null = null;
+
+  loginFormGroup = this.FormBuilder.group({
+    username: ['', [Validators.required]],
+    password: ['', [Validators.required]],
+  });
+
+  invalidCredentials = false;
+
+  login() {
+    this.loginSubscription = this.LoginService.login(
+      this.loginFormGroup.value as Credentials
+    ).subscribe({
+      next: (result: User | null | undefined) => {
+        this.navigateHome();
+      },
+      error: (error) => {
+        this.invalidCredentials = true;
+      },
+    });
+  }
+
+  navigateHome() {
+    this.Router.navigate(['/home']);
+  }
+
+  ngOnDestroy(): void {
+    this.loginSubscription?.unsubscribe();
+  }
+}
+```
+
+6. Les appels API qui vont suivre nécessiterons un token. Implémentons ceci avec une navbar
+
+dans app.component.html
+
+```
+@if(loginService.user()){
+  <mat-toolbar>
+    <button mat-icon-button (click)="navigateHome()"><mat-icon>home</mat-icon></button>
+    <button mat-icon-button class="logout" (click)="logout()">logout</button>
+  </mat-toolbar>
+}
+<router-outlet></router-outlet>
+```
+
+dans app.component.ts
+
+```
+export class AppComponent implements OnDestroy {
+  private router = inject(Router);
+  LoginService = inject(LoginService);
+
+  private logoutSubscription: Subscription | null = null;
+
+  ngOnDestroy(): void {
+    this.logoutSubscription?.unsubscribe();
+  }
+
+  logout() {
+    this.logoutSubscription = this.LoginService.logout().subscribe({
+      next: () => {
+        this.navigateToLogin();
+      },
+      error: () => {
+        this.navigateToLogin();
+      },
+    });
+  }
+
+  navigateToLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  navigateHome() {
+    this.router.navigate(['/home']);
+  }
+}
+```
+
+Nous allons injecter un token pour nous authentifier, pour ça on va créer un intercepteur de requêtes HTTP.
+`ng g interceptor interceptors/auth-token`
+
+```
+export const authTokenInterceptor: HttpInterceptorFn = (req, next) => {
+  const token = localStorage.getItem('token');
+
+  let requestToSend = req;
+  if (token) {
+    const headers = req.headers.set('Authorization', 'Token' + token);
+    requestToSend = req.clone({
+      headers: headers,
+    });
+  }
+
+  return next(requestToSend);
+};
+```
+
+puis dans les providers app.config :
+
+`provideHttpClient(withInterceptors([authTokenInterceptor])),`
+
+7. Nous avons néanmoins un autre problème : même sans se connecter les URLs de l'application sont accessible à l'utilisateur. Pour vérifier si l'utilisateur est connecté avant d'accéder à l'URL, on va utiliser les gardes-routes.
+
+`ng g guard guards/is-logged-in` > sélectionner CanActivate > touche Entrée
+
+dans le fichier .guards.ts
+
+```
+export const isLoggedInGuard: CanActivateFn = (route, state) => {
+  const loginService = inject(LoginService);
+  const router = inject(Router);
+
+  if (loginService.user() === undefined) {
+    return loginService.getUser().pipe(
+      map(() => {
+        return true;
+      }),
+      catchError(() => router.navigate(['/login']))
+    );
+  }
+  if (loginService.user() === null) {
+    router.navigate(['/login']);
+  }
+
+  return true;
+};
+```
+
+dans app.routes.ts ajouter `, canActivate: [isLoggedInGuard]` après component.
