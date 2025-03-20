@@ -22,7 +22,7 @@ export const routes: Routes = [
         canActivate: [isLoggedInGuard],
       },
       {
-        path: ':id',
+        path: ':monster',
         component: MonsterComponent,
         canActivate: [isLoggedInGuard],
       },

@@ -1088,3 +1088,85 @@ export const isLoggedInGuard: CanActivateFn = (route, state) => {
 ```
 
 dans app.routes.ts ajouter `, canActivate: [isLoggedInGuard]` après component.
+
+## Cours 13 - Integration d'une API REST
+
+API REST :
+
+API: **A**pplication **P**rogramming **I**nterface
+REST : **RE**presentational **S**tate **T**ransfer
+
+Manière d'interagir avec un serveur via utilisation de méthodes HTTP pour manipuler les ressource.
+
+Pour chaque traitement de ressource, on transfert une représentation de l'état de la ressource dans un sens ou dans l'autre.
+
+1. On créer d'abord une interface
+
+```
+export interface IModel {
+  id?: number; // optionnel car quand on crée un objet, l'id est généré automatiquement
+  name: string;
+  image: string;
+  description: string;
+}
+```
+
+2. Dans le model lié au service
+
+```
+export class Model implements IModel{
+  ...
+  static fromJson(modelJson: IModel): Model {
+    return Object.assign(new Model(), modelJson);
+  }
+
+  toJson(): IModel {
+    const modelJson: IModel = Object.assign({}, this);
+    delete modelJson.id;
+    return modelJson;
+  }
+}
+```
+
+3. Dans le service lié au model
+
+```
+export class ModelService {
+  private BASE_URL = 'http://url/api';
+  private http = inject(HttpClient);
+
+  getAll(): Observable<Model[]> {
+    return this.http.get<IModel[]>(this.BASE_URL).pipe(
+      map((modelJsonArray) => {
+        return modelJsonArray.map<Model>((modelJson) =>
+          Model.fromJson(modelJson)
+        );
+      })
+    );
+  }
+
+  get(id: number): Observable<Model> {
+    return this.http
+      .get<IModel>(this.BASE_URL + id + '/')
+      .pipe(map((modelJson) => Model.fromJson(modelJson)));
+  }
+
+  add(model: Model): Observable<Model> {
+    return this.http
+      .post<IModel>(this.BASE_URL, model.toJson())
+      .pipe(map((modelJson) => Model.fromJson(modelJson)));
+  }
+
+  update(model: Model): Observable<Model> {
+    return this.http
+      .put<IModel>(this.BASE_URL + model.id + '/', model.toJson())
+      .pipe(map((modelJson) => Model.fromJson(modelJson)));
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(this.BASE_URL + id + '/');
+  }
+}
+```
+
+4. Dans les fichier .component.ts où le service est appelé apporter les modifications nécessaires
